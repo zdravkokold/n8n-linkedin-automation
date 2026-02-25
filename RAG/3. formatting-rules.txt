@@ -1,0 +1,21 @@
+DOCUMENT: LinkedIn Formatting Standards
+
+Post Length:
+- 150–200 words
+
+Opening:
+- Strong hook in first line
+- Ideally a question or bold insight
+
+Body:
+- 2–3 short paragraphs
+- 1 bullet section allowed (3–5 bullets)
+
+Ending:
+- Clear CTA question
+- Encourage engagement
+
+Do NOT:
+- Use emojis excessively
+- Use all caps
+- Use text separators like "━━━━━━━━━━━━━━━━━━━━━━"

@@ -1,0 +1,18 @@
+DOCUMENT: Hashtag Guidelines
+
+Hashtag Rules:
+- Always use 2-5 hashtags
+- Place hashtags at the end of the post
+- Avoid generic hashtags like #success or #motivation
+- Prefer niche-specific and industry-relevant hashtags
+
+Formatting:
+- No more than 5 hashtags
+- Do not insert hashtags inside the text
+- Keep them clean and aligned with topic
+
+Examples:
+#AIInnovation
+#GrowthStrategy
+#FastTrack
+#LeadershipInsights
