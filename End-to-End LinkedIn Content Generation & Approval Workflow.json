@@ -1,0 +1,1526 @@
+{
+  "name": "End-to-End LinkedIn Content Generation & Approval Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2960,
+        800
+      ],
+      "id": "dbf77780-5e93-4735-8f3d-3ecc9e5e6b3d",
+      "credentials": {
+        "openAiApi": {
+          "id": "Yn7a0wxEZZzw78cL",
+          "name": "My Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "name": "OpenAI Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        -2608,
+        1168
+      ],
+      "typeVersion": 1,
+      "id": "ce6b7998-ae15-44f3-822e-d8c04df1e07f",
+      "credentials": {
+        "openAiApi": {
+          "id": "Yn7a0wxEZZzw78cL",
+          "name": "My Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Gmail Trigger - New Request').item.json.threadId }}",
+        "messageId": "={{ $('Gmail Trigger - New Request').item.json.id }}",
+        "message": "=Hello,\n\nHere is your LinkedIn post draft with 2 sets of 2 cover images:\n\n━━━━━━━━━━━━━━━━━━━━━━\n📝 LINKEDIN POST DRAFT\n━━━━━━━━━━━━━━━━━━━━━━\n\n{{ $('Store Post Content').item.json.output }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n\nPlease reply to this email with:\n\n• \"Approved\" to finalize\nOR\n• \"Denied\" and your feedback for revisions",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "cover1"
+              },
+              {
+                "property": "cover2"
+              },
+              {
+                "property": "cover3"
+              },
+              {
+                "property": "cover4"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Send Post + Images",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        592
+      ],
+      "id": "97d6fa8c-6ed6-4165-9ec2-4ec69b39add2",
+      "webhookId": "cc35a4e6-9f46-47f5-9081-9fcc3f6cf154",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Gmail Trigger – Reply Listener').item.json.threadId }}",
+        "messageId": "={{ $('Gmail Trigger – Reply Listener').item.json.id }}",
+        "message": "=✅ Your LinkedIn post has been approved and is ready to publish!\n\nNo further action is needed.\n\nThank you for your response!",
+        "options": {}
+      },
+      "name": "Send Approval Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -32
+      ],
+      "id": "864edcc4-92c7-4414-a4f3-a4589af0e0f6",
+      "webhookId": "996253ec-b1f9-4755-8173-cf99d28d9fed",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional LinkedIn content editor.\n\nYour role is to REVISE the provided draft.\nYou are NOT allowed to create a new post from scratch.\n\nOriginal Draft:\n{{ $('Code in JavaScript').item.json.originalDraft }}\n\nReviewer Feedback:\n{{ $('Code in JavaScript').item.json.textFeedback }}\n\nSTRICT RULES:\n\n1. You MUST keep the exact same topic.\n2. You MUST preserve the core structure and meaning.\n3. You MUST modify ONLY what the feedback explicitly requests.\n4. If feedback does not request structural change, do NOT change structure.\n5. If feedback does not request new examples, do NOT add new examples.\n6. If feedback says \"add one bullet\", only add one bullet.\n7. If feedback says \"change hashtags\", only change hashtags.\n8. Do NOT improve, optimize, rewrite, or enhance beyond the feedback.\n9. Do NOT expand length unless explicitly requested.\n10. If no text-related change is requested, return the draft unchanged.\n\nYour task:\nApply ONLY the requested changes.\n\nReturn ONLY the revised LinkedIn post text.\nDo NOT add explanations.\nDo NOT restate the instructions.",
+        "options": {}
+      },
+      "name": "Revise Post",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        608
+      ],
+      "id": "27755954-5b8d-4ec1-a86d-2193d903a314"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "name": "OpenAI - Revise",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -496,
+        864
+      ],
+      "id": "aa5d7025-93a8-4f8f-8e24-5629c835716d",
+      "credentials": {
+        "openAiApi": {
+          "id": "Yn7a0wxEZZzw78cL",
+          "name": "My Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Gmail Trigger – Reply Listener').item.json.threadId }}",
+        "messageId": "={{ $('Gmail Trigger – Reply Listener').item.json.id }}",
+        "message": "=Hello,\n\nHere is your LinkedIn post draft with 2 sets of 2 cover images:\n\n━━━━━━━━━━━━━━━━━━━━━━\n📝 LINKEDIN POST DRAFT\n━━━━━━━━━━━━━━━━━━━━━━\n\n{{ $('Store Revised Post').item.json.output }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n\nPlease reply to this email with:\n\n• \"Approved\" to finalize\nOR\n• \"Denied\" and your feedback for revisions",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "cover1"
+              },
+              {
+                "property": "cover2"
+              },
+              {
+                "property": "cover3"
+              },
+              {
+                "property": "cover4"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Send Revised Post + Images",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        336
+      ],
+      "id": "c0e84ed5-6db3-42e4-a1c0-cf0fdfeb7903",
+      "webhookId": "23603ac1-60a9-4b35-95ac-21070c1a8da7",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "filter-subject",
+              "leftValue": "={{ $json.Subject.trim() }}",
+              "rightValue": "=Create a LinkedIn Post",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "31c21c5f-9aa5-4d6d-baeb-0e38484234db",
+              "leftValue": "={{ $json.Subject.trim() }}",
+              "rightValue": "=Re:",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "ed2e673a-0398-4a42-825c-e5604fb4022d",
+              "leftValue": "={{ $json.snippet }}",
+              "rightValue": "Here is your LinkedIn post draft:",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "name": "Filter Subject",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3424,
+        592
+      ],
+      "id": "57c86660-db2e-4f27-bf2e-ff34dc86c7e8"
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "topic",
+              "stringValue": "={{$json.snippet}}"
+            },
+            {
+              "name": "requestorEmail",
+              "stringValue": "={{$json.from.value[0].address}}"
+            },
+            {
+              "name": "threadId ",
+              "stringValue": "={{$json.threadId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Extract Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -3168,
+        592
+      ],
+      "id": "0641fafb-51f5-4fdd-b611-1d0c036e9799"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional LinkedIn content creator.\n\nYour task:\n1. Use the RAG tool to retrieve company guidelines, tone of voice, and sample content\n2. If the RAG returns no results or incomplete context, use these defaults:\n   - Professional yet conversational tone\n   - Focus on value and insights\n   - Avoid overly promotional language\n3. Generate a LinkedIn post about the topic\n\nThe topic is: {{ $json.snippet }}\n\nPost requirements:\n- 150-200 words\n- Start with a compelling hook\n- Professional yet conversational tone\n- 3-5 relevant hashtags at the end\n- End with a call-to-action question\n\nReturn ONLY the post text, nothing else.",
+        "options": {}
+      },
+      "name": "AI Agent - Generate Post",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -2960,
+        592
+      ],
+      "id": "1a9a52f3-27c5-466c-8443-1e09a26a5780"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to retrieve company guidelines, tone of voice rules, formatting requirements and sample LinkedIn posts. Always call this tool first.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "linkedinautomation",
+          "mode": "list",
+          "cachedResultName": "linkedinautomation"
+        },
+        "topK": 1536,
+        "options": {}
+      },
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -2432,
+        1168
+      ],
+      "id": "7c8d6871-a58b-4674-bbf7-bc8dd58cb6bd",
+      "credentials": {
+        "pineconeApi": {
+          "id": "jvyl9nK4f558kdVG",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Store Post Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -2576,
+        592
+      ],
+      "id": "aa23bff6-e3ff-419d-bd11-6c803210d4ea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"inputs\": \"A realistic professional photograph that DO NOT CONTAIN any text overlays and visually represents the following LinkedIn post concept: \" \n\n+ $('Store Post Content').item.json.output.replace(/\"/g, \"'\").replace(/\\n/g, \" \").replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\").trim() + \".\"\n  }\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover1"
+            }
+          }
+        }
+      },
+      "name": "Generate Image 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -2272,
+        288
+      ],
+      "id": "85a79143-b978-4bf8-be6a-8923386a1edb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"inputs\": \"Extract the core theme and emotion from this LinkedIn post and generate a photorealistic scene that DO NOT CONTAIN any text overlays: \" \n\n+ $('Store Post Content').item.json.output.replace(/\"/g, \"'\").replace(/\\n/g, \" \").replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\").trim()\n  }\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover2"
+            }
+          }
+        }
+      },
+      "name": "Generate Image 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -2272,
+        496
+      ],
+      "id": "3382b2bc-3711-44d4-bc6a-275711548acc"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"inputs\": \"Clean digital illustration with modern flat-design aesthetic for this LinkedIn post that DO NOT CONTAIN any text overlays: \"\n\n+ $('Store Post Content').item.json.output.replace(/\"/g, \"'\").replace(/\\n/g, \" \").replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\").trim()\n  }\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover3"
+            }
+          }
+        }
+      },
+      "name": "Generate Image 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -2272,
+        688
+      ],
+      "id": "6b545784-fb87-4891-96b7-0029f73673cb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"inputs\": \"Human relatable editorial photograph for LinkedIn cover that DO NOT CONTAIN any text overlays: \"\n\n+ $('Store Post Content').item.json.output.replace(/\"/g, \"'\").replace(/\\n/g, \" \").replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\").trim()\n  }\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover4"
+            }
+          }
+        }
+      },
+      "name": "Generate Image 4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -2272,
+        880
+      ],
+      "id": "657a40d6-7f7c-48e5-959d-875777a0584b"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Merge Sets",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        -1824,
+        592
+      ],
+      "id": "86e47214-d04f-4245-a30c-f459fff62521"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Store Revised Post",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        400
+      ],
+      "id": "2e69930d-bc8d-48ae-b646-861174efc332"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  \"inputs\": \n    \"A realistic professional photograph for this LinkedIn post that DO NOT CONTAIN any text overlays. \" +\n\n    \"Post content: \" +\n\n    $('Store Revised Post').item.json.output\n      .replace(/\"/g, \"'\")\n      .replace(/\\n/g, \" \")\n      .replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\")\n      .trim()\n\n    +\n\n    (\n      $('Code in JavaScript').item.json.imageFeedback?.trim()\n        ? \" Additional image revision instructions: \" +\n          $('Code in JavaScript').item.json.imageFeedback.trim()\n        : \"\"\n    )\n\n    +\n\n    \" Image variation: wide-angle shot inside a modern professional office environment, natural lighting, realistic perspective.\"\n}\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover1"
+            }
+          }
+        }
+      },
+      "name": "Revised Image 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        368,
+        32
+      ],
+      "id": "87552432-1548-4deb-b708-bca818cb7b6c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  \"inputs\": \n    \"A realistic professional photograph for this LinkedIn post that DO NOT CONTAIN any text overlays. \" +\n\n    \"Post content: \" +\n\n    $('Store Revised Post').item.json.output\n      .replace(/\"/g, \"'\")\n      .replace(/\\n/g, \" \")\n      .replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\")\n      .trim()\n\n    +\n\n    (\n      $('Code in JavaScript').item.json.imageFeedback?.trim()\n        ? \" Additional image revision instructions: \" +\n          $('Code in JavaScript').item.json.imageFeedback.trim()\n        : \"\"\n    )\n\n    +\n\n    \" Image variation: medium close-up composition, professional business setting, sharp focus, clean corporate aesthetic.\"\n}\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover2"
+            }
+          }
+        }
+      },
+      "name": "Revised Image 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        368,
+        240
+      ],
+      "id": "7c01be1c-32e7-4aaa-b107-1685de4c9535"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  \"inputs\": \n    \"A realistic professional photograph for this LinkedIn post that DO NOT CONTAIN any text overlays. \" +\n\n    \"Post content: \" +\n\n    $('Store Revised Post').item.json.output\n      .replace(/\"/g, \"'\")\n      .replace(/\\n/g, \" \")\n      .replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\")\n      .trim()\n\n    +\n\n    (\n      $('Code in JavaScript').item.json.imageFeedback?.trim()\n        ? \" Additional image revision instructions: \" +\n          $('Code in JavaScript').item.json.imageFeedback.trim()\n        : \"\"\n    )\n\n    +\n\n    \" Image variation: outdoor urban environment, natural daylight, dynamic composition, realistic business atmosphere.\"\n}\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover3"
+            }
+          }
+        }
+      },
+      "name": "Revised Image 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        368,
+        416
+      ],
+      "id": "9c638e39-0146-467d-8f4e-1b3fa116d4e4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$vars.HuggingFaceAPI}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  \"inputs\": \n    \"A realistic professional photograph for this LinkedIn post that DO NOT CONTAIN any text overlays. \" +\n\n    \"Post content: \" +\n\n    $('Store Revised Post').item.json.output\n      .replace(/\"/g, \"'\")\n      .replace(/\\n/g, \" \")\n      .replace(/[\\u{1F600}-\\u{1F9FF}]/gu, \"\")\n      .trim()\n\n    +\n\n    (\n      $('Code in JavaScript').item.json.imageFeedback?.trim()\n        ? \" Additional image revision instructions: \" +\n          $('Code in JavaScript').item.json.imageFeedback.trim()\n        : \"\"\n    )\n\n    +\n\n    \" Image variation: cinematic angle, slightly dramatic lighting, modern corporate mood, high realism.\"\n}\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "cover4"
+            }
+          }
+        }
+      },
+      "name": "Revised Image 4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        368,
+        592
+      ],
+      "id": "55589efa-f150-4084-abb2-f5ea193813cc"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Revised Merge Set 1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        624,
+        176
+      ],
+      "id": "bed59024-a461-42a4-b5c3-ad9530129a06"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Revised Merge Set 2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        640,
+        480
+      ],
+      "id": "10b3403f-91a2-4411-ac80-3b1139949183"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Merge Revised Images",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        864,
+        336
+      ],
+      "id": "108ef9b8-8ba0-4b37-8a20-537ff8707bcb"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "q": "in:inbox is:unread subject:\"Create a LinkedIn Post\" -subject:\"Re:\""
+        }
+      },
+      "name": "Gmail Trigger - New Request",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3632,
+        592
+      ],
+      "id": "d4450380-329b-462b-930d-181f49a51357",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Merge Set 2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        -2032,
+        736
+      ],
+      "id": "897ea16e-ef63-4b06-9296-99c94c9b11cb"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Merge Set 1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        -2032,
+        480
+      ],
+      "id": "5b600536-dde5-4e51-8b1c-54c8ac2871ad"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "in:inbox is:unread subject:\"Create a LinkedIn Post\" -label:processed_linkedin_post"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1520,
+        224
+      ],
+      "id": "34e60030-e238-48b0-af1d-202c92d7c35c",
+      "name": "Gmail Trigger – Reply Listener",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3d0bc4c7-32be-4b1a-ba60-878e7cc4fba9",
+              "leftValue": "={{ $json.cleanSubject }}",
+              "rightValue": "=Re:",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -1088,
+        224
+      ],
+      "id": "3f5893ec-333b-4437-b5a7-55a5a23f3e35",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User replied with:\n\n\"{{ $json.feedback }}\"\n\nClassify the response into ONE of the following categories:\n\nAPPROVED → If the user clearly confirms approval (e.g., \"approved\", \"looks good\", \"go ahead\", \"perfect\", \"publish it\")\n\nDENIED → If the user is requesting changes, feedback, edits, or improvements\n\nUNKNOWN → If the message is unclear, unrelated, empty, or cannot confidently be classified as approval or revision\n\nRespond with ONLY one word:\nAPPROVED\nDENIED\nor\nUNKNOWN",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -880,
+        224
+      ],
+      "id": "d8ad3dc4-8195-4a8d-91fc-ebfe8139edaf",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -880,
+        432
+      ],
+      "id": "f1250fd8-9f3d-469a-88e9-5896565c441f",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Yn7a0wxEZZzw78cL",
+          "name": "My Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "APPROVED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d93133e3-862c-4014-a22e-191d1c504b44"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c71cd138-8984-4eac-93b8-51ebc55d4213",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "DENIED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "88ce0660-37c6-45ca-9143-eb5fa299abf7",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "UNKNOWN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        208
+      ],
+      "id": "25c510cb-42de-4a06-b1e4-fda54d89f423",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Gmail Trigger – Reply Listener').item.json.threadId }}",
+        "messageId": "={{ $('Gmail Trigger – Reply Listener').item.json.id }}",
+        "message": "=Hi,\n\nWe couldn’t clearly determine whether your last message was an approval or a request for revision.\n\nPlease reply to the latest email with the draft post and images again with:\n\n• \"Approved\" to finalize the post\nOR\n• \"Denied\" and your clean feedback for revisions\n\nThank you!",
+        "options": {}
+      },
+      "name": "Unknown Response",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        256
+      ],
+      "id": "21a4faef-96ab-4662-943d-4eaa314a6858",
+      "webhookId": "996253ec-b1f9-4755-8173-cf99d28d9fed",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fullText = $json.text || \"\";\nconst rawSubject = $json.subject || \"\";\n\nlet cleanSubject = rawSubject\n  .replace(/^(re:\\s*)+/i, \"Re: \")\n  .replace(/^(fw:\\s*)+/i, \"\")\n  .trim();\n\nif (!/^Re:/i.test(cleanSubject) && /^Re:/i.test(rawSubject)) {\n  cleanSubject = rawSubject;\n}\n\nconst lines = fullText.split(\"\\n\");\n\nlet feedbackLines = [];\nlet draftLines = [];\nlet inQuote = false;\n\nfor (const line of lines) {\n  if (line.trim().startsWith(\">\")) {\n    inQuote = true;\n    draftLines.push(line.replace(/^> ?/, \"\"));\n  } else if (!inQuote) {\n    feedbackLines.push(line);\n  }\n}\n\nlet feedback = feedbackLines.join(\" \").trim();\nfeedback = feedback.replace(/На .*нап.*:/gi, \"\").trim();\n\nlet originalDraft = draftLines.join(\"\\n\");\n\noriginalDraft = originalDraft\n  .replace(/Hello,/gi, \"\")\n  .replace(/Here is your LinkedIn post draft:/gi, \"\")\n  .replace(/📝 LINKEDIN POST DRAFT/gi, \"\")\n  .replace(/━━━━━━━━━━━━━━━━━━━━━━/g, \"\")\n  .replace(/Please reply to this email[\\s\\S]*/i, \"\")\n  .trim();\n\nconst imageKeywords = [\n  \"image\",\n  \"images\",\n  \"picture\",\n  \"photo\",\n  \"visual\",\n  \"background\",\n  \"color\",\n  \"car\",\n  \"logo\",\n  \"design\"\n];\n\nlet textFeedbackParts = [];\nlet imageFeedbackParts = [];\n\nconst sentences = feedback.split(/(?<=\\.)\\s+/);\n\nfor (const sentence of sentences) {\n  const lower = sentence.toLowerCase();\n\n  if (imageKeywords.some(keyword => lower.includes(keyword))) {\n    imageFeedbackParts.push(sentence.trim());\n  } else if (sentence.trim() !== \"\") {\n    textFeedbackParts.push(sentence.trim());\n  }\n}\n\nconst textFeedback = textFeedbackParts.join(\" \").trim();\nconst imageFeedback = imageFeedbackParts.join(\" \").trim();\n\nreturn [\n  {\n    json: {\n      feedback,\n      textFeedback,\n      imageFeedback,\n      originalDraft,\n      cleanSubject,\n      threadId: $json.threadId,\n      messageId: $json.id\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1312,
+        224
+      ],
+      "id": "5f99de94-168d-41db-a435-e3d5054ae62b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9c9c40b6-b81c-4b1e-8c4e-1a336b306680",
+              "leftValue": "={{ !!$('Code in JavaScript').item.json.imageFeedback?.trim() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        528
+      ],
+      "id": "33fe8996-aa4c-4a5e-94d8-78144d03b628",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Gmail Trigger – Reply Listener').item.json.threadId }}",
+        "messageId": "={{ $('Gmail Trigger – Reply Listener').item.json.id }}",
+        "message": "=Hello,\n\nHere is your LinkedIn post draft with 2 sets of 2 cover images:\n\n━━━━━━━━━━━━━━━━━━━━━━\n📝 LINKEDIN POST DRAFT\n━━━━━━━━━━━━━━━━━━━━━━\n\n{{ $('Store Revised Post').item.json.output }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n\nPlease reply to this email with:\n\n• \"Approved\" to finalize\nOR\n• \"Denied\" and your feedback for revisions",
+        "options": {}
+      },
+      "name": "Send Revised Post + Images2",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        384,
+        832
+      ],
+      "id": "a35d5754-6ff4-490a-a706-47207fb074bf",
+      "webhookId": "23603ac1-60a9-4b35-95ac-21070c1a8da7",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5y5j09LmjsLkJ71",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Generate Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Post + Images": {
+      "main": [
+        []
+      ]
+    },
+    "Revise Post": {
+      "main": [
+        [
+          {
+            "node": "Store Revised Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Revise": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Revise Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Revised Post + Images": {
+      "main": [
+        []
+      ]
+    },
+    "Filter Subject": {
+      "main": [
+        [
+          {
+            "node": "Extract Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Generate Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Generate Post": {
+      "main": [
+        [
+          {
+            "node": "Store Post Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Generate Post",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revise Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Post Content": {
+      "main": [
+        [
+          {
+            "node": "Generate Image 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Image 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Image 3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Image 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 1": {
+      "main": [
+        [
+          {
+            "node": "Merge Set 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Set 1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generate Image 3": {
+      "main": [
+        [
+          {
+            "node": "Merge Set 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 4": {
+      "main": [
+        [
+          {
+            "node": "Merge Set 2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Sets": {
+      "main": [
+        [
+          {
+            "node": "Send Post + Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Revised Post": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Image 1": {
+      "main": [
+        [
+          {
+            "node": "Revised Merge Set 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Image 2": {
+      "main": [
+        [
+          {
+            "node": "Revised Merge Set 1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Revised Image 3": {
+      "main": [
+        [
+          {
+            "node": "Revised Merge Set 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Image 4": {
+      "main": [
+        [
+          {
+            "node": "Revised Merge Set 2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Revised Merge Set 1": {
+      "main": [
+        [
+          {
+            "node": "Merge Revised Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Merge Set 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Revised Images",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Revised Images": {
+      "main": [
+        [
+          {
+            "node": "Send Revised Post + Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger - New Request": {
+      "main": [
+        [
+          {
+            "node": "Filter Subject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Set 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Sets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Set 1": {
+      "main": [
+        [
+          {
+            "node": "Merge Sets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger – Reply Listener": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send Approval Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Revise Post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unknown Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Revised Image 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Revised Image 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Revised Image 3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Revised Image 4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Revised Post + Images2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "87280084-49b8-473b-af84-d4ff394a45c3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "949b79b8b4bfe0cc102fb1b704e7e4ed3b8f1af4b3e84679a88689df02f37c7d"
+  },
+  "id": "lvEeCOkDLGBICHiv",
+  "tags": []
+}
